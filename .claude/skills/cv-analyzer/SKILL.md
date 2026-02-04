@@ -1,69 +1,71 @@
 ---
 name: cv-analyzer
-description: Analyser un CV et identifier les points positifs et négatifs par rapport à un poste cible. Utiliser quand l'utilisateur demande d'analyser un CV, évaluer une candidature, ou reviewer un curriculum vitae.
-argument-hint: [chemin-vers-cv]
+description: Analyze a CV/resume and identify strengths and weaknesses for a target job position. Use when user asks to analyze a CV, evaluate a candidate, or review a resume.
+argument-hint: [path-to-cv]
 ---
 
-# Analyseur de CV
+# CV Analyzer
 
-Analyse un CV par rapport à un poste cible et produit un rapport structuré des points forts et points faibles.
+Analyze a CV against a target job position and produce a structured report of strengths and areas for improvement.
 
-## Processus
+**Language adaptation:** Respond in the same language as the user's request.
 
-1. **Collecter les informations**
-   - Si le CV n'est pas fourni en argument, demander le chemin du fichier
-   - Demander le poste cible visé (intitulé + contexte si disponible)
+## Process
 
-2. **Lire et analyser le CV**
-   - Lire le fichier CV (PDF, DOCX, ou texte)
-   - Extraire les informations clés: expériences, compétences, formation, langues, certifications
+1. **Collect information**
+   - If CV path not provided as argument, ask for the file path
+   - Ask for the target job position (title + context if available)
 
-3. **Évaluer par rapport au poste**
-   - Comparer les compétences du candidat avec les exigences typiques du poste
-   - Identifier l'adéquation entre l'expérience et le niveau attendu
+2. **Read and analyze the CV**
+   - Read the CV file (PDF, DOCX, or text)
+   - Extract key information: experience, skills, education, languages, certifications
 
-4. **Produire le rapport**
+3. **Evaluate against the position**
+   - Compare candidate skills with typical job requirements
+   - Assess experience level alignment
 
-## Format du rapport
+4. **Produce the report**
+
+## Report Format
 
 ```markdown
-## Analyse du CV pour le poste de [POSTE CIBLE]
+## CV Analysis for [TARGET POSITION]
 
-### Points Positifs
-- [Point fort 1 avec justification]
-- [Point fort 2 avec justification]
+### Strengths
+- [Strength 1 with justification]
+- [Strength 2 with justification]
 - ...
 
-### Points à Améliorer
-- [Point faible 1 avec suggestion d'amélioration]
-- [Point faible 2 avec suggestion d'amélioration]
+### Areas for Improvement
+- [Weakness 1 with improvement suggestion]
+- [Weakness 2 with improvement suggestion]
 - ...
 
-### Adéquation globale
-[Évaluation synthétique de l'adéquation candidat/poste]
+### Overall Fit
+[Summary assessment of candidate-position alignment]
 
-### Recommandations
-- [Actions concrètes pour améliorer le CV]
+### Recommendations
+- [Concrete actions to improve the CV]
 ```
 
-## Critères d'évaluation
+## Evaluation Criteria
 
-### Points positifs potentiels
-- Expérience directement pertinente pour le poste
-- Compétences techniques recherchées
-- Progression de carrière cohérente
-- Formations et certifications valorisantes
-- Réalisations quantifiées et mesurables
-- Mots-clés alignés avec le secteur
-- Structure claire et lisible
-- Langues maîtrisées pertinentes
+### Potential Strengths
+- Directly relevant experience for the position
+- In-demand technical skills
+- Consistent career progression
+- Valuable education and certifications
+- Quantified and measurable achievements
+- Industry-aligned keywords
+- Clear and readable structure
+- Relevant language proficiency
 
-### Points négatifs potentiels
-- Lacunes de compétences clés pour le poste
-- Trous inexpliqués dans le parcours
-- Expérience insuffisante ou non pertinente
-- Manque de réalisations concrètes
-- Présentation confuse ou surchargée
-- Fautes d'orthographe ou incohérences
-- Informations obsolètes ou non pertinentes
-- Absence de personnalisation pour le poste
+### Potential Weaknesses
+- Missing key skills for the position
+- Unexplained career gaps
+- Insufficient or irrelevant experience
+- Lack of concrete achievements
+- Confusing or cluttered presentation
+- Spelling errors or inconsistencies
+- Outdated or irrelevant information
+- No customization for the target position
