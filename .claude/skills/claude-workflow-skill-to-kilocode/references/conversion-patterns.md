@@ -183,7 +183,11 @@ This skill is for exploration only:
 
 ## Pattern 5: Subagent Execution
 
-Skills with `context: fork` and `agent`.
+Skills with `context: fork` and `agent`, or using `Task` tool.
+
+**Important Kilocode tools:**
+- `switch_mode` - Change mode in current conversation
+- `new_task` - Create a subtask (equivalent to Claude Code's Task tool)
 
 ### Claude Code
 ```yaml
@@ -216,7 +220,7 @@ customModes:
       - browser
 ```
 
-Then, skill references mode:
+Then, skill uses `new_task`:
 ```yaml
 ---
 name: deep-research
@@ -225,20 +229,58 @@ description: Research a topic thoroughly. Use when deep analysis is needed. Requ
 
 # Deep Research
 
-This skill should be executed in **Deep Research** mode.
-
 ## Setup
 
 Ensure the `deep-research` mode is configured in `.kilocodemodes`.
 
 ## Process
 
-1. Switch to Deep Research mode
-2. Research the specified topic:
+Use `new_task` to create a subtask in **deep-research** mode:
+
+1. The subtask will research the specified topic:
    - Find relevant files
    - Analyze patterns
    - Search web if needed
-3. Summarize findings with references
+2. Summarize findings with references
+
+Note: `new_task` creates an isolated context similar to Claude Code's `context: fork`.
+```
+
+---
+
+## Pattern 5b: Parallel Subagents
+
+Skills that launch multiple agents in parallel.
+
+### Claude Code
+```markdown
+Launch ALL agents in a SINGLE message:
+
+**Agent 1:** Task(subagent_type=explore-codebase)
+Find files related to the task.
+
+**Agent 2:** Task(subagent_type=websearch)
+Search for best practices.
+
+**Agent 3:** Task(subagent_type=code-reviewer)
+Review the existing implementation.
+```
+
+### Kilocode
+```markdown
+Create parallel subtasks using `new_task`:
+
+1. **Subtask 1:** Use `new_task` in **explore-codebase** mode
+   Find files related to the task.
+
+2. **Subtask 2:** Use `new_task` in **websearch** mode
+   Search for best practices.
+
+3. **Subtask 3:** Use `new_task` in **code-reviewer** mode
+   Review the existing implementation.
+
+Note: Each `new_task` creates an independent subtask with its own context.
+Wait for all subtasks to complete, then synthesize results.
 ```
 
 ---
@@ -420,3 +462,46 @@ Fix the issue quickly with minimal changes.
 | `Snipper` | snipper | read, edit |
 | `code-reviewer` | code-reviewer | read |
 | `test-runner` | test-runner | read, command |
+
+---
+
+## Claude Code vs Kilocode Tool Mapping
+
+| Claude Code | Kilocode | Purpose |
+|-------------|----------|---------|
+| `Task(subagent_type=X)` | `new_task` + mode | Create subtask with isolated context |
+| `context: fork` | `new_task` | Isolated execution context |
+| - | `switch_mode` | Change mode in current conversation |
+
+### When to use `new_task` vs `switch_mode`
+
+**Use `new_task` when:**
+- Need isolated context (like Claude Code's `context: fork`)
+- Running parallel subtasks (like multiple Task calls)
+- Want independent execution without affecting main conversation
+
+**Use `switch_mode` when:**
+- Want to change AI behavior in current conversation
+- Don't need isolated context
+- Sequential workflow within same conversation
+
+### CRITICAL: Skills with subtasks require orchestrator mode
+
+**If a skill uses `new_task` to spawn subtasks, it MUST be run in orchestrator mode.**
+
+The orchestrator mode has the capability to create and manage subtasks. Before starting such a skill, the user must first `switch_mode` to orchestrator.
+
+Example skill preamble:
+```markdown
+## Prerequisites
+
+This skill orchestrates multiple subtasks and must be run in **orchestrator** mode.
+
+**Before starting:** Use `switch_mode` to switch to orchestrator mode.
+
+## Workflow
+
+1. (In orchestrator mode) Create subtask in **explore-codebase** mode
+2. (In orchestrator mode) Create subtask in **code-reviewer** mode
+3. Synthesize results from subtasks
+```

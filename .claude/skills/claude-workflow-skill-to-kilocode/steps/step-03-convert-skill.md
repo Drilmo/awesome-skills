@@ -123,15 +123,44 @@ First, gather context by running:
 
 **2.3 Update Agent References**
 
-Replace Task tool references with mode references:
+**Important:** Kilocode has two tools for mode transitions:
+- `switch_mode` - Change mode in current conversation
+- `new_task` - Create a subtask (equivalent to Claude Code's Task tool)
+
+**CRITICAL: Skills with subtasks require orchestrator mode**
+
+If the skill uses `new_task` to spawn subtasks, it MUST be run in **orchestrator** mode:
+```markdown
+## Prerequisites
+
+This skill uses subtasks and must be run in **orchestrator** mode.
+Before starting, use `switch_mode` to switch to orchestrator mode.
+```
+
+Replace Task tool references with `new_task`:
 ```markdown
 # Before (Claude Code)
 Launch Task(subagent_type=code-reviewer) to analyze code
 
 # After (Kilocode)
-Switch to **Code Reviewer** mode to analyze code
+Use `new_task` to create a subtask in **code-reviewer** mode to analyze code.
 
 Note: Requires code-reviewer mode configured in .kilocodemodes
+```
+
+For parallel agent execution:
+```markdown
+# Before (Claude Code)
+Launch multiple Task agents in parallel:
+- Task(subagent_type=explore-codebase)
+- Task(subagent_type=websearch)
+
+# After (Kilocode)
+Create parallel subtasks using `new_task`:
+1. Create subtask in **explore-codebase** mode to explore the codebase
+2. Create subtask in **websearch** mode to search documentation
+
+Note: Each `new_task` creates an independent subtask with its own context.
 ```
 
 Replace `context: fork` + `agent` references:
@@ -139,9 +168,12 @@ Replace `context: fork` + `agent` references:
 # Before (skill with context: fork, agent: Explore)
 This skill runs in isolated Explore context
 
-# After
-This skill should be run in **Codebase Explorer** mode.
-Ensure the explore-codebase mode is configured.
+# After (Kilocode - Option A: switch_mode for same conversation)
+Switch to **explore-codebase** mode using `switch_mode`.
+
+# After (Kilocode - Option B: new_task for isolated subtask)
+Use `new_task` to create a subtask in **explore-codebase** mode.
+This creates an isolated context similar to Claude Code's fork.
 ```
 
 **2.4 Convert Workflow Steps**

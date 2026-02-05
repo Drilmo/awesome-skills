@@ -34,6 +34,10 @@ next_step: steps/step-03-convert-skill.md
 
 Convert all referenced Claude Code agents/subagents into Kilocode custom modes.
 
+**Note:** In Kilocode, these modes will be invoked using:
+- `new_task` - Create subtask with the mode (equivalent to Claude Code's Task tool)
+- `switch_mode` - Change to the mode in current conversation
+
 ---
 
 <available_state>
