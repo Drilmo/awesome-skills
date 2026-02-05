@@ -1,6 +1,6 @@
 ---
 name: step-05-save
-description: Save converted skill and modes to Kilocode locations
+description: Save converted skill and modes to output directory
 prev_step: steps/step-04-validate.md
 ---
 
@@ -8,36 +8,37 @@ prev_step: steps/step-04-validate.md
 
 ## MANDATORY EXECUTION RULES (READ FIRST):
 
-- 🛑 NEVER overwrite without confirmation (unless auto_mode)
+- 🛑 NEVER overwrite existing output directory without confirmation (unless auto_mode)
 - 🛑 NEVER save invalid content
-- ✅ ALWAYS create proper directory structure
-- ✅ ALWAYS save modes before skill (dependency order)
-- 📋 YOU ARE A SAVER, finalizing the conversion
-- 💬 FOCUS on correct file placement
+- ✅ ALWAYS create the complete directory structure
+- ✅ ALWAYS save modes as individual files
+- 📋 YOU ARE A SAVER, creating the deliverable package
+- 💬 FOCUS on correct file structure and placement
 - 🚫 FORBIDDEN to modify content - only save
 
 ## EXECUTION PROTOCOLS:
 
-- 🎯 Determine save locations based on user choice
-- 💾 Create directories if needed
-- 📖 Save in correct order: modes first, then skill
-- 🚫 FORBIDDEN to skip backup of existing files
+- 🎯 Create output directory in current working directory
+- 💾 Create `skills/` and `modes/` subdirectories
+- 📖 Save each mode as a separate YAML file
+- 🚫 FORBIDDEN to skip any converted content
 
 ## CONTEXT BOUNDARIES:
 
 - Variables from step-04: `{validation_result}` must be PASSED
-- This step produces: saved files and final report
+- This step produces: self-contained output directory
 - No more modifications to content
 
 ## YOUR TASK:
 
-Save the converted Kilocode skill and modes to their target locations.
+Create a self-contained output directory with the converted skill and modes.
 
 ---
 
 <available_state>
 From previous steps:
 - `{skill_name}` - Skill being converted
+- `{skill_path}` - Original skill location
 - `{auto_mode}`, `{save_mode}`, `{output_dir}`
 - `{kilocode_skill}` - Converted skill content
 - `{converted_modes}` - Converted modes list
@@ -46,216 +47,288 @@ From previous steps:
 
 ---
 
-## EXECUTION SEQUENCE:
+## OUTPUT STRUCTURE
 
-### 1. Determine Save Locations
+The deliverable is a directory in the current working directory:
 
-**1.1 Ask for destination (if not auto_mode):**
-
-**If `{auto_mode}` = true:**
-→ Use defaults:
-  - Skill: `~/.kilocode/skills/{skill_name}/`
-  - Modes: `~/.kilocode/custom_modes.yaml` (append)
-
-**If `{auto_mode}` = false:**
-Use AskUserQuestion:
-```yaml
-questions:
-  - header: "Skill Location"
-    question: "Where should the converted skill be saved?"
-    options:
-      - label: "Global (~/.kilocode/skills/) (Recommended)"
-        description: "Available in all projects"
-      - label: "Project (.kilocode/skills/)"
-        description: "Only in current project"
-      - label: "Custom path"
-        description: "I'll specify the path"
-    multiSelect: false
-  - header: "Mode Location"
-    question: "Where should the converted modes be saved?"
-    options:
-      - label: "Global (~/.kilocode/custom_modes.yaml) (Recommended)"
-        description: "Available in all projects"
-      - label: "Project (.kilocodemodes)"
-        description: "Only in current project"
-    multiSelect: false
+```
+{skill_name}/
+├── skills/
+│   └── {skill_name}/
+│       ├── SKILL.md
+│       ├── references/     (if original had references)
+│       ├── scripts/        (if original had scripts)
+│       └── assets/         (if original had assets)
+└── modes/
+    ├── {mode-slug-1}.yaml
+    ├── {mode-slug-2}.yaml
+    └── ...
 ```
 
-Set `{skill_destination}` and `{modes_destination}` based on response.
+---
 
-### 2. Check for Existing Files
+## EXECUTION SEQUENCE:
 
-**2.1 Check skill location:**
+### 1. Determine Output Location
 
-If `{skill_destination}/SKILL.md` exists:
+Set `{output_root}` = `./{skill_name}/`
 
-**If `{auto_mode}` = true:**
-→ Create backup: `SKILL.md.backup-{timestamp}`
-→ Proceed with overwrite
+**Check if directory already exists:**
 
-**If `{auto_mode}` = false:**
+**If `{auto_mode}` = true AND directory exists:**
+→ Create backup: `{skill_name}.backup-{timestamp}/`
+→ Proceed with creation
+
+**If `{auto_mode}` = false AND directory exists:**
 Use AskUserQuestion:
 ```yaml
 questions:
   - header: "Overwrite"
-    question: "Skill already exists at destination. Overwrite?"
+    question: "Directory ./{skill_name}/ already exists. Overwrite?"
     options:
       - label: "Overwrite (backup created)"
-        description: "Replace existing skill, keep backup"
+        description: "Replace existing directory, keep backup"
       - label: "Choose different name"
-        description: "Save with a different skill name"
+        description: "Save with a different directory name"
       - label: "Cancel"
         description: "Don't save"
     multiSelect: false
 ```
 
-**2.2 Check modes file:**
-
-If `{modes_destination}` exists:
-→ Read existing modes
-→ Check for slug conflicts
-→ Plan merge strategy (append new modes)
-
-### 3. Save Modes First
-
-**3.1 Create/Update modes file:**
-
-**For global location (`~/.kilocode/custom_modes.yaml`):**
-
-If file exists:
-```yaml
-# Read existing
-existing_modes = parse(file)
-
-# Merge (new modes override conflicts)
-for mode in {converted_modes}:
-  existing_modes[mode.slug] = mode
-
-# Write combined
-write(file, existing_modes)
-```
-
-If file doesn't exist:
-```yaml
-# Create new
-customModes:
-  {converted_modes as YAML}
-```
-
-**For project location (`.kilocodemodes`):**
-
-Same logic, different file.
-
-**3.2 Report saved modes:**
-
-```markdown
-## Modes Saved
-
-Location: {modes_destination}
-
-| Mode Slug | Action |
-|-----------|--------|
-| {slug} | Created/Updated |
-```
-
-### 4. Save Skill
-
-**4.1 Create skill directory:**
+### 2. Create Directory Structure
 
 ```bash
-mkdir -p {skill_destination}
+mkdir -p {output_root}/skills/{skill_name}
+mkdir -p {output_root}/modes
 ```
 
-**4.2 Write SKILL.md:**
+### 3. Save Skill Files
+
+**3.1 Write SKILL.md:**
 
 ```bash
-write {skill_destination}/SKILL.md
+write {output_root}/skills/{skill_name}/SKILL.md
 ```
 
 Content: `{kilocode_skill.frontmatter}` + `{kilocode_skill.body}`
 
-**4.3 Copy supporting files:**
+**3.2 Copy supporting directories:**
 
 If original skill had `references/`:
-→ Copy to `{skill_destination}/references/`
+```bash
+cp -r {skill_path}/references/ {output_root}/skills/{skill_name}/references/
+```
+(Convert any references if they contain Claude Code specifics)
 
 If original skill had `scripts/`:
-→ Copy to `{skill_destination}/scripts/`
+```bash
+cp -r {skill_path}/scripts/ {output_root}/skills/{skill_name}/scripts/
+```
 
 If original skill had `assets/`:
-→ Copy to `{skill_destination}/assets/`
+```bash
+cp -r {skill_path}/assets/ {output_root}/skills/{skill_name}/assets/
+```
 
-**4.4 Copy step files (for workflow skills):**
+If original skill had `steps/` AND steps were NOT inlined:
+```bash
+cp -r {skill_path}/steps/ {output_root}/skills/{skill_name}/steps/
+```
+(Convert any step files if they contain Claude Code specifics)
 
-If original had `steps/` directory:
-→ Option A: Already inlined in SKILL.md (skip)
-→ Option B: Copy converted steps to `{skill_destination}/steps/`
+### 4. Save Mode Files
 
-### 5. Verify Save
+For each mode in `{converted_modes}`:
 
-**5.1 Check files exist:**
+**4.1 Generate mode filename:**
+`{mode.slug}.yaml`
 
-| File | Exists | Valid |
-|------|--------|-------|
-| `{skill_destination}/SKILL.md` | ✓/✗ | ✓/✗ |
-| `{modes_destination}` | ✓/✗ | ✓/✗ |
+**4.2 Write mode file:**
 
-**5.2 Validate YAML syntax:**
+```bash
+write {output_root}/modes/{mode.slug}.yaml
+```
+
+Content for each mode file:
+```yaml
+# Kilocode Mode: {mode.name}
+# Converted from Claude Code agent: {mode.source_agent}
+#
+# To use: Add this content to .kilocodemodes or ~/.kilocode/custom_modes.yaml
+# under the customModes: array
+
+- slug: {mode.slug}
+  name: "{mode.name}"
+  description: {mode.description}
+  roleDefinition: |
+    {mode.roleDefinition}
+  groups:
+    - {group1}
+    - {group2}
+  whenToUse: {mode.whenToUse}
+  customInstructions: |
+    {mode.customInstructions}
+```
+
+**4.3 Create combined modes file:**
+
+Also create `{output_root}/modes/_all-modes.yaml` with all modes combined:
+```yaml
+# Combined Kilocode Modes
+# Converted from Claude Code skill: {skill_name}
+#
+# Copy this content to .kilocodemodes or ~/.kilocode/custom_modes.yaml
+
+customModes:
+  {all converted_modes as YAML array}
+```
+
+### 5. Create README
+
+Create `{output_root}/README.md`:
+
+```markdown
+# Converted Skill: {skill_name}
+
+This directory contains a Claude Code skill converted to Kilocode format.
+
+## Installation
+
+### 1. Install the Skill
+
+Copy the skill directory to your Kilocode skills location:
+
+**Global (all projects):**
+```bash
+cp -r skills/{skill_name} ~/.kilocode/skills/
+```
+
+**Project-specific:**
+```bash
+cp -r skills/{skill_name} .kilocode/skills/
+```
+
+### 2. Install the Modes
+
+{if converted_modes is not empty}
+This skill requires the following Kilocode modes:
+
+| Mode | Slug | File |
+|------|------|------|
+{for each mode}
+| {mode.name} | `{mode.slug}` | `modes/{mode.slug}.yaml` |
+
+**Option A: Copy all modes at once**
+Merge `modes/_all-modes.yaml` content into your `.kilocodemodes` file.
+
+**Option B: Copy individual modes**
+Copy specific mode files from `modes/` directory.
+{endif}
+
+{if converted_modes is empty}
+This skill has no mode dependencies.
+{endif}
+
+## Conversion Notes
+
+**Original skill:** `{skill_path}`
+**Converted:** {timestamp}
+
+### Limitations
+
+{list of documented limitations from kilocode_skill.notes}
+
+## Testing
+
+After installation, test the skill in Kilocode:
+```
+use the {skill_name} skill to [action]
+```
+```
+
+### 6. Verify Output
+
+**6.1 Check files exist:**
+
+| Path | Exists |
+|------|--------|
+| `{output_root}/skills/{skill_name}/SKILL.md` | ✓/✗ |
+| `{output_root}/modes/_all-modes.yaml` | ✓/✗ |
+| `{output_root}/README.md` | ✓/✗ |
+
+For each mode in `{converted_modes}`:
+| `{output_root}/modes/{mode.slug}.yaml` | ✓/✗ |
+
+**6.2 Validate YAML syntax:**
 
 Read back saved files and verify:
 - YAML parses correctly
 - Required fields present
 - No corruption during write
 
-### 6. Generate Final Report
+### 7. Generate Final Report
 
 ```markdown
 # Conversion Complete: {skill_name}
 
-## Summary
+## Output Location
 
-**Original:** {skill_path}
-**Converted Skill:** {skill_destination}/SKILL.md
-**Modes:** {modes_destination}
+📁 `./{skill_name}/`
 
 ## Files Created
 
 ### Skill
-- `{skill_destination}/SKILL.md`
-{if references}
-- `{skill_destination}/references/` ({count} files)
-{if scripts}
-- `{skill_destination}/scripts/` ({count} files)
+```
+{skill_name}/skills/{skill_name}/
+├── SKILL.md
+{if references}├── references/ ({count} files){endif}
+{if scripts}├── scripts/ ({count} files){endif}
+{if assets}├── assets/ ({count} files){endif}
+```
 
 ### Modes ({count})
+```
+{skill_name}/modes/
+├── _all-modes.yaml (combined)
+{for each mode}├── {mode.slug}.yaml{endfor}
+```
+
 | Slug | Name | Groups |
 |------|------|--------|
-| {slug} | {name} | {groups} |
+{for each mode}| {slug} | {name} | {groups} |{endfor}
 
 ## Next Steps
 
-1. **Test the skill:**
-   Open Kilocode and try: "use the {skill_name} skill"
+1. **Review the output:**
+   ```bash
+   ls -la ./{skill_name}/
+   cat ./{skill_name}/README.md
+   ```
 
-2. **Verify modes work:**
-   Check modes are available in Kilocode mode selector
+2. **Install to Kilocode:**
+   ```bash
+   cp -r ./{skill_name}/skills/{skill_name} ~/.kilocode/skills/
+   ```
 
-3. **Review limitations:**
-   See conversion notes for features that couldn't be converted
+3. **Install modes (if any):**
+   Merge `./{skill_name}/modes/_all-modes.yaml` into `.kilocodemodes`
+
+4. **Test in Kilocode:**
+   "use the {skill_name} skill"
 
 ## Conversion Notes
 
-{list of documented limitations from kilocode_skill.notes}
+{list of documented limitations}
 
 ---
-Conversion completed at {timestamp}
+✅ Conversion completed at {timestamp}
 ```
 
 **If `{save_mode}` = true:**
-- Append to `{output_dir}/05-save.md`
-- Update progress in `{output_dir}/00-context.md`
+- Append to `.claude/output/skill-converter/{skill_name}/05-save.md`
+- Update progress in `.claude/output/skill-converter/{skill_name}/00-context.md`
 
-### 7. Display Completion
+### 8. Display Completion
 
 Present the final report to user.
 
@@ -263,38 +336,45 @@ Present the final report to user.
 ```
 ✅ Conversion complete!
 
-Skill saved to: {skill_destination}
-Modes saved to: {modes_destination}
+Output directory: ./{skill_name}/
 
-Test it in Kilocode: "use the {skill_name} skill"
+Contents:
+- skills/{skill_name}/SKILL.md
+{if modes}- modes/ ({count} mode files){endif}
+- README.md (installation instructions)
+
+Next: Review README.md for installation steps
 ```
 
 ---
 
 ## SUCCESS METRICS:
 
-✅ Skill saved to correct location
-✅ All modes saved/merged correctly
+✅ Output directory created at `./{skill_name}/`
+✅ Skill saved to `skills/{skill_name}/SKILL.md`
+✅ All modes saved as individual YAML files
+✅ Combined modes file created
+✅ README with installation instructions created
 ✅ Supporting files copied
 ✅ Files verified readable
 ✅ Final report generated
-✅ No file corruption
 
 ## FAILURE MODES:
 
 ❌ Permission denied writing files
 ❌ Directory creation failed
-❌ Mode merge conflicts not handled
-❌ File corruption during write
+❌ YAML syntax errors in output
 ❌ Missing supporting files
+❌ Incomplete mode files
 ❌ **CRITICAL**: Saving without validation pass
 
 ## SAVE PROTOCOLS:
 
-- Always save modes before skill (dependency)
-- Always create backups before overwrite
-- Verify writes by reading back
-- Report clear success/failure
+- Create complete directory structure first
+- Save each mode as individual file for flexibility
+- Also create combined file for convenience
+- Include clear installation README
+- Verify all writes by reading back
 
 ---
 
@@ -303,11 +383,10 @@ Test it in Kilocode: "use the {skill_name} skill"
 The conversion workflow is now finished.
 
 <critical>
-Remember: A successful conversion means:
-1. Skill file exists and is valid YAML
-2. All modes exist and are valid
-3. User knows where files are
-4. User knows how to test
+Remember: A successful conversion produces a self-contained directory with:
+1. `skills/{skill_name}/` - The converted Kilocode skill
+2. `modes/` - Individual mode files + combined file
+3. `README.md` - Clear installation instructions
 
-If anything failed, provide clear error message and recovery steps!
+User can review, modify, then copy to Kilocode locations!
 </critical>

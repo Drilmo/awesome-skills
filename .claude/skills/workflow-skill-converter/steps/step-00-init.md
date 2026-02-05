@@ -82,22 +82,28 @@ If `{skill_input}` is a relative path or name:
 → List available skills in ~/.claude/skills/
 → **STOP** workflow
 
-### 3. Create Output Structure (if save_mode)
+### 3. Initialize Output Paths
 
-**If `{save_mode}` = true:**
+**Always set output root:**
+Set `{output_root}` = `./{skill_name}/`
+
+This is where the converted skill and modes will be saved (in step-05).
+
+**If `{save_mode}` = true (conversion logs):**
 
 ```bash
 mkdir -p .claude/output/skill-converter/{skill_name}/
 ```
 
-Set `{output_dir}` = `.claude/output/skill-converter/{skill_name}/`
+Set `{logs_dir}` = `.claude/output/skill-converter/{skill_name}/`
 
-Create `{output_dir}/00-context.md`:
+Create `{logs_dir}/00-context.md`:
 ```markdown
 # Skill Conversion: {skill_name}
 
 **Created:** {timestamp}
 **Source:** {skill_path}
+**Output:** {output_root}
 **Flags:** auto={auto_mode}, save={save_mode}
 
 ## Progress
@@ -117,9 +123,10 @@ Create `{output_dir}/00-context.md`:
 ## Initialization Complete
 
 **Skill:** {skill_name}
-**Path:** {skill_path}
+**Source:** {skill_path}
+**Output:** {output_root} (will create: skills/ + modes/)
 **Mode:** {auto_mode ? "Automatic" : "Interactive"}
-**Output:** {save_mode ? output_dir : "None"}
+**Logs:** {save_mode ? logs_dir : "None"}
 
 Ready to analyze skill structure.
 ```

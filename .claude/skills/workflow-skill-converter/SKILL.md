@@ -5,23 +5,44 @@ argument-hint: "[-a] [-s] <skill-path or skill-name>"
 ---
 
 <objective>
-Convert Claude Code skills (.claude/skills/) to Kilocode skills (.kilocode/skills/) with reliable, validated conversions. Automatically detects and converts referenced subagents to Kilocode modes.
+Convert Claude Code skills (.claude/skills/) to Kilocode skills with reliable, validated conversions. Creates a self-contained output directory with both the converted skill and any required modes.
 </objective>
+
+<output_structure>
+**Deliverable:** A directory in the current working directory:
+
+```
+{skill_name}/
+├── skills/
+│   └── {skill_name}/
+│       ├── SKILL.md
+│       └── references/     (if any)
+└── modes/
+    ├── {mode-slug-1}.yaml
+    ├── {mode-slug-2}.yaml
+    └── ...
+```
+
+Copy `skills/` content to `~/.kilocode/skills/` and merge `modes/` into `.kilocodemodes` or `~/.kilocode/custom_modes.yaml`.
+</output_structure>
 
 <quick_start>
 **Basic usage:**
 ```bash
 /workflow-skill-converter git-commit
+# Creates: ./git-commit/skills/git-commit/SKILL.md
 ```
 
 **Automatic mode (no questions):**
 ```bash
 /workflow-skill-converter -a workflow-apex
+# Creates: ./workflow-apex/skills/... + ./workflow-apex/modes/...
 ```
 
-**With output saving:**
+**With conversion logs:**
 ```bash
 /workflow-skill-converter -a -s utils-refactor
+# Creates output + logs in .claude/output/skill-converter/
 ```
 </quick_start>
 
@@ -30,7 +51,7 @@ Convert Claude Code skills (.claude/skills/) to Kilocode skills (.kilocode/skill
 | Short | Long | Description |
 |-------|------|-------------|
 | `-a` | `--auto` | Auto mode: skip confirmations, use defaults |
-| `-s` | `--save` | Save mode: output conversion logs to `.claude/output/skill-converter/` |
+| `-s` | `--save` | Save mode: also output conversion logs to `.claude/output/skill-converter/` |
 </flags>
 
 <input>
@@ -62,13 +83,13 @@ Path to skill or skill name from `~/.claude/skills/`
 | `{skill_path}` | string | Full path to Claude Code skill |
 | `{skill_name}` | string | Skill name (directory name) |
 | `{auto_mode}` | boolean | Skip confirmations |
-| `{save_mode}` | boolean | Save outputs to files |
-| `{output_dir}` | string | Output directory (if save_mode) |
+| `{save_mode}` | boolean | Save conversion logs |
+| `{logs_dir}` | string | Conversion logs directory (if save_mode) |
+| `{output_root}` | string | Output directory: `./{skill_name}/` |
 | `{skill_structure}` | object | Parsed skill frontmatter and body |
 | `{referenced_agents}` | list | Subagents found in skill |
 | `{converted_modes}` | list | Modes created from agents |
 | `{kilocode_skill}` | object | Final converted skill |
-| `{destination}` | string | Where to save Kilocode skill |
 </state_variables>
 
 <workflow>
