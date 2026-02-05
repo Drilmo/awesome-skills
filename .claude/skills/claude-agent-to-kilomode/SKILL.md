@@ -1,10 +1,10 @@
 ---
-name: agent-to-kilomode
+name: claude-agent-to-kilomode
 description: Convert Claude Code agents to Kilocode modes. Use when user wants to "convert agent", "agent to mode", "migrate agent to kilocode", or transform Claude Code agents into Kilocode custom modes. Supports -a flag for automatic conversion.
 argument-hint: "[-a] <agent-path or agent-name>"
 ---
 
-# Agent to Kilocode Mode Converter
+# Claude Agent to Kilocode Mode Converter
 
 Convert Claude Code agents (.md files) to Kilocode custom modes (.kilocodemodes YAML).
 
